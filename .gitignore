@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.claude/settings.local.json
+
+# Large data/model artifacts — regenerate via the notebooks instead of committing
+dataset/*.csv
+models/*.keras
+notebooks/distilbert_imdb/
+notebooks/distilbert_imdb_finetuned/
