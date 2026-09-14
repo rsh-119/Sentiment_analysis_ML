@@ -4,8 +4,13 @@ __pycache__/
 .ipynb_checkpoints/
 .claude/settings.local.json
 
-# Large data/model artifacts — regenerate via the notebooks instead of committing
+# Large data/model artifacts — regenerate via scripts/00_prepare_data.py and the training scripts
 dataset/*.csv
-models/*.keras
-notebooks/distilbert_imdb/
-notebooks/distilbert_imdb_finetuned/
+data/processed/
+outputs/checkpoints/
+*.egg-info/
+.claude/
+
+# Kept locally, not tracked in git
+CLAUDE.md
+reports/comparison.md

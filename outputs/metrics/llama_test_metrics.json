@@ -1,0 +1,29 @@
+{
+  "model_name": "llama",
+  "accuracy": 0.9720354934122076,
+  "precision": 0.9713827226531158,
+  "recall": 0.9729440128582909,
+  "f1": 0.9721627408993576,
+  "confusion_matrix": [
+    [
+      3598,
+      107
+    ],
+    [
+      101,
+      3632
+    ]
+  ],
+  "roc_auc": 0.9961619982697992,
+  "efficiency": {
+    "latency_ms_per_example": 262.69619261147454,
+    "throughput_examples_per_sec": 3.8066786962496697,
+    "batch_size": 8,
+    "num_runs": 20
+  },
+  "param_count": {
+    "total": 8072204288,
+    "trainable": 41943040
+  },
+  "disk_size_bytes": 101167569
+}

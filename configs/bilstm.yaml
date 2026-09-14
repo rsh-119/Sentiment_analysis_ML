@@ -1,0 +1,29 @@
+seed:
+  seed: 42
+  deterministic: true
+
+split:
+  train_ratio: 0.70
+  val_ratio: 0.15
+  test_ratio: 0.15
+  seed: 42
+
+bilstm:
+  vocab_size: 30000
+  min_freq: 2
+  max_seq_len: 256
+  embedding_dim: 128
+  hidden_size: 256
+  num_layers: 2
+  dropout: 0.3
+  lr: 0.001
+  weight_decay: 0.00001
+  batch_size: 64
+  epochs: 10
+  early_stopping_patience: 2
+  num_workers: 2
+
+eval:
+  batch_size: 64
+  latency_num_warmup: 10
+  latency_num_runs: 100

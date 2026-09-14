@@ -1,0 +1,32 @@
+{
+  "seed": 42,
+  "train_ratio": 0.7,
+  "val_ratio": 0.15,
+  "test_ratio": 0.15,
+  "raw_csv_sha256": "dfc447764f82be365fa9c2beef4e8df89d3919e3da95f5088004797d79695aa2",
+  "num_duplicates_removed": 418,
+  "num_rows_total_deduped": 49582,
+  "splits": {
+    "train": {
+      "size": 34707,
+      "label_counts": {
+        "negative": 17288,
+        "positive": 17419
+      }
+    },
+    "val": {
+      "size": 7437,
+      "label_counts": {
+        "negative": 3705,
+        "positive": 3732
+      }
+    },
+    "test": {
+      "size": 7438,
+      "label_counts": {
+        "negative": 3705,
+        "positive": 3733
+      }
+    }
+  }
+}

@@ -1,0 +1,13 @@
+# Shared settings used by scripts/00_prepare_data.py and as the default seed/
+# split for every other script. Every script in this project loads its config
+# through src/imdb_sentiment/config.py::load_config() — no hyperparameter
+# should be hardcoded outside these YAML files (or the dataclass defaults).
+seed:
+  seed: 42
+  deterministic: true
+
+split:
+  train_ratio: 0.70
+  val_ratio: 0.15
+  test_ratio: 0.15
+  seed: 42

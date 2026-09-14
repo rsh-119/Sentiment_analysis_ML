@@ -1,0 +1,29 @@
+{
+  "model_name": "bilstm",
+  "accuracy": 0.8728152729228287,
+  "precision": 0.8334529791816224,
+  "recall": 0.9330297347977498,
+  "f1": 0.8804347826086957,
+  "confusion_matrix": [
+    [
+      3009,
+      696
+    ],
+    [
+      250,
+      3483
+    ]
+  ],
+  "roc_auc": 0.9502078879946265,
+  "efficiency": {
+    "latency_ms_per_example": 0.17085018796933582,
+    "throughput_examples_per_sec": 5853.081064092712,
+    "batch_size": 64,
+    "num_runs": 100
+  },
+  "param_count": {
+    "total": 6208001,
+    "trainable": 6208001
+  },
+  "disk_size_bytes": 24836031
+}
