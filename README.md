@@ -3,9 +3,15 @@
 A reproducible comparison between a classical **Bidirectional LSTM** and a
 **QLoRA fine-tuned Meta Llama-3.1-8B-Instruct** (via plain Hugging Face
 `transformers`/`peft`/`bitsandbytes`/`trl`) on binary sentiment classification
-(IMDB movie reviews). See [`CLAUDE.md`](CLAUDE.md) for the full project spec
-and engineering principles this repo follows (reproducibility, no data
-leakage, identical evaluation protocol for both models).
+(IMDB movie reviews), built around strict reproducibility (seeded, centrally
+configured), no data leakage between splits, and one identical evaluation
+protocol for both models.
+
+**Headline result:** on the same held-out test split, the fine-tuned Llama-3.1
+reaches **97.2% accuracy / 0.972 F1**, about 10 points above the BiLSTM
+baseline's **87.3% accuracy / 0.880 F1** — at the cost of ~1,500x higher
+inference latency and a GPU requirement the BiLSTM doesn't have. Full numbers
+in [Status](#status) below.
 
 ## Setup
 
@@ -16,26 +22,31 @@ python3 -m venv .venv
 ./.venv/bin/pip install -e .
 ```
 
-`requirements.txt` pins `torch==2.13.0+cu129` via the `--extra-index-url` at
-its top — **check this matches your GPU driver** (`nvidia-smi` shows the
-driver's max supported CUDA version; the installed torch build must not
-exceed it, e.g. a driver capped at CUDA 12.9 cannot run a CUDA-13 build). Two
-pitfalls hit while building this repo, worth knowing about:
-- Unsloth's current release targets CUDA 13 and will silently upgrade torch
-  to a CUDA-13 build if installed — hence this project uses plain
-  `transformers`/`peft`/`bitsandbytes`/`trl` instead (see `CLAUDE.md`
-  decision log / `train/train_llama.py` docstring).
-- An unpinned `pip install torch` can resolve to a newer CUDA build than the
-  one behind `--extra-index-url` even with that flag set — always pin an
-  exact `+cu12x`/`+cu13x` version.
-- Llama batch inference (`eval/llama_predictor.py`) OOM'd on a shared GPU
-  after tens of minutes even under `torch.no_grad()`: computing full-sequence
-  logits (`batch x seq_len x vocab`) instead of just the last token, plus an
-  unused KV cache, plus CUDA allocator fragmentation from varying per-batch
-  padding lengths, together grew memory use across batches until it crashed.
-  Fixed with `logits_to_keep=1`, `use_cache=False` in `llama_predictor.py`,
-  and `PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True` (set automatically
-  by `scripts/03_evaluate_llama.py`).
+`requirements.txt` pins `torch==2.13.0+cu129`. Before installing, run
+`nvidia-smi` and check your GPU driver's max supported CUDA version — the
+torch build you install must not be newer than that (a driver limited to
+CUDA 12.9 can't run a CUDA 13 build of torch). Three real problems came up
+while building this project, worth knowing about:
+
+- **The fine-tuning library stack had to match the GPU driver's CUDA
+  version.** This project's GPU driver only supports up to CUDA 12.9, so the
+  QLoRA fine-tuning here is done with plain `transformers`/`peft`/
+  `bitsandbytes`/`trl` (see `train/train_llama.py`) — libraries that stay
+  compatible with that CUDA version, rather than one that would silently pull
+  in a newer, incompatible torch build.
+- **A plain `pip install torch` can quietly grab the wrong CUDA version**,
+  even with `--extra-index-url` pointing at the right one. Always pin an
+  exact version like `torch==2.13.0+cu129`, never just `torch`.
+- **Llama inference ran out of GPU memory after running for a while**, even
+  though no gradients were being tracked. Three things were adding up: it was
+  computing a prediction for every word in the input instead of just the
+  last one, it was keeping around cache data meant for generating text
+  (which this project doesn't need), and memory was getting fragmented
+  because each batch of reviews was a different length. Fixed in
+  `llama_predictor.py` by only computing what's needed (`logits_to_keep=1`),
+  turning off that unused cache (`use_cache=False`), and telling PyTorch to
+  manage memory more flexibly (`PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True`,
+  set automatically by `scripts/03_evaluate_llama.py`).
 
 ## Repository structure
 
@@ -46,7 +57,7 @@ scripts/              # one script per pipeline stage, in run order (00-04)
 tests/                # pytest suite (config, seeding, data/splits, vocab, model, metrics)
 data/splits/          # committed split manifest (seed, ratios, dedup count, per-split sizes)
 outputs/              # metrics, predictions, figures (committed); checkpoints (gitignored)
-reports/              # generated comparison.md
+reports/              # generated comparison.md (local only, gitignored)
 ```
 
 ## Pipeline
@@ -94,7 +105,8 @@ architecture doesn't. The cost of that gain: the LoRA fine-tune (1 epoch over
 the full train split) took ~6 hours on a 24GB GPU vs. minutes for the
 BiLSTM, and inference is ~1,500x slower per example, requiring a GPU where
 the BiLSTM needs none. Full breakdown, confusion matrices, and disagreement
-analysis in [`reports/comparison.md`](reports/comparison.md).
+analysis in `reports/comparison.md` (generated locally by
+`scripts/04_compare_results.py`, not tracked in git).
 
 | BiLSTM confusion matrix | Llama-3.1 confusion matrix |
 |---|---|
@@ -110,7 +122,9 @@ After running the full pipeline, see:
 - `outputs/metrics/` — per-model metrics (accuracy/precision/recall/F1/ROC-AUC,
   confusion matrix, efficiency) and per-example predictions.
 - `outputs/figures/` — confusion matrices, ROC curves, efficiency comparison.
-- `reports/comparison.md` — the final side-by-side comparison and analysis.
+- `reports/comparison.md` — the final side-by-side comparison and analysis
+  (generated locally, gitignored — see the Status section above for a copy
+  of the current results).
 
 ## Testing
 

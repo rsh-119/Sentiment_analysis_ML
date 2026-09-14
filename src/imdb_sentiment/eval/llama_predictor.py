@@ -1,5 +1,5 @@
 """Inference wrapper for the fine-tuned Llama model: loads the 4-bit base
-model + LoRA adapter (plain transformers/peft, no Unsloth), and predicts via
+model + LoRA adapter via plain transformers/peft, and predicts via
 label-logit comparison rather than open-ended generation (see
 train/train_llama.py for the rationale). Produces predictions in the same
 (pred_labels, pred_probs) shape the shared evaluator expects, directly
